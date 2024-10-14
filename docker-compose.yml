@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  postgresql:
+    image: 'bitnami/postgresql:latest'
+    environment:
+      - POSTGRESQL_USERNAME=bn_airflow
+      - POSTGRESQL_PASSWORD=bitnami1
+      - POSTGRESQL_DATABASE=bitnami_airflow
+    volumes:
+      - 'postgresql_data:/bitnami/postgresql'
+    networks:
+      - airflow-network
+
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - REDIS_PASSWORD=bitnami1
+    volumes:
+      - 'redis_data:/bitnami/redis'
+    networks:
+      - airflow-network
+
+  airflow:
+    image: 'bitnami/airflow:latest'
+    environment:
+      - AIRFLOW_FERNET_KEY=my_fernet_key
+      - AIRFLOW_SECRET_KEY=my_secret_key
+      - AIRFLOW_DATABASE_USERNAME=bn_airflow
+      - AIRFLOW_DATABASE_PASSWORD=bitnami1
+      - AIRFLOW_DATABASE_NAME=bitnami_airflow
+      - AIRFLOW_EXECUTOR=CeleryExecutor
+      - AIRFLOW_WEBSERVER_AUTHENTICATE=True
+      - AIRFLOW_WEBSERVER_AUTH_BACKEND=airflow.auth.backends.password_auth
+      - AIRFLOW_WEBSERVER_DEFAULT_UI_USER=admin
+      - AIRFLOW_WEBSERVER_DEFAULT_UI_PASSWORD=admin
+    volumes:
+      - 'airflow_data:/bitnami/airflow'
+    ports:
+      - '8080:8080'
+    depends_on:
+      - postgresql
+      - redis
+    networks:
+      - airflow-network
+
+volumes:
+  postgresql_data:
+    driver: local
+  redis_data:
+    driver: local
+  airflow_data:
+    driver: local
+
+networks:
+  airflow-network:
+    driver: bridge
